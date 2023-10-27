@@ -37,6 +37,28 @@ module.exports = {
     imagekit: async (req, res, next) => {
         try {
             // contoh baca dari request multipart
+            let { first_name, last_name } = req.body;
+
+            let strFile = req.file.buffer.toString('base64');
+
+            let { url } = await imagekit.upload({
+                fileName: Date.now() + path.extname(req.file.originalname),
+                file: strFile
+            });
+
+            return res.json({
+                status: true,
+                message: 'OK',
+                error: null,
+                data: { file_url: url, first_name, last_name }
+            });
+        } catch (err) {
+            next(err);
+        }
+    },
+    updateProfile: async (req, res, next) => {
+        try {
+            // contoh baca dari request multipart
             let { first_name, last_name, birth_date, userId } = req.body;
 
             let strFile = req.file.buffer.toString('base64');
