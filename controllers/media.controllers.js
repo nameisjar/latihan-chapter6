@@ -1,6 +1,8 @@
 const imagekit = require('../libs/imagekit');
 const path = require('path');
 const qr = require('qr-image');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 module.exports = {
     singleUpload: (req, res) => {
@@ -35,7 +37,7 @@ module.exports = {
     imagekit: async (req, res, next) => {
         try {
             // contoh baca dari request multipart
-            let { first_name, last_name } = req.body;
+            let { first_name, last_name, birth_date, userId } = req.body;
 
             let strFile = req.file.buffer.toString('base64');
 
@@ -44,11 +46,26 @@ module.exports = {
                 file: strFile
             });
 
+            let userProfile = await prisma.userProfile.create({
+                data: {
+                    first_name,
+                    last_name,
+                    birth_date,
+                    profile_picture: url,
+                    user:
+                        {
+                            connect: {
+                                id: Number(userId)
+                            }
+                        }
+                }
+            });
+
             return res.json({
                 status: true,
                 message: 'OK',
                 error: null,
-                data: { file_url: url, first_name, last_name } // cek data dari request
+                data: { file_url: userProfile } // cek data dari request
             });
         } catch (err) {
             next(err);
