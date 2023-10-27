@@ -13,7 +13,7 @@ router.post('/imagekit/videos', video.single('video'), imagekit);
 router.post('/imagekit/documents', document.single('document'), imagekit);
 router.post('/imagekit/qr-codes', generateQrCode);
 
-router.post('/updateProfile', image.single('image'), updateProfile);
+router.put('/updateprofile', image.single('image'), updateProfile);
 
 
 module.exports = router;

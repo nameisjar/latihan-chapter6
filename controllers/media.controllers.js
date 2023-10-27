@@ -56,30 +56,77 @@ module.exports = {
             next(err);
         }
     },
+    // updateProfile: async (req, res, next) => {
+    //     try {
+    //         // contoh baca dari request multipart
+    //         let { first_name, last_name, birth_date, userId } = req.body;
+
+    //         let strFile = req.file.buffer.toString('base64');
+
+    //         let { url } = await imagekit.upload({
+    //             fileName: Date.now() + path.extname(req.file.originalname),
+    //             file: strFile
+    //         });
+
+    //         let userProfile = await prisma.userProfile.create({
+    //             data: {
+    //                 first_name,
+    //                 last_name,
+    //                 birth_date,
+    //                 profile_picture: url,
+    //                 user:
+    //                     {
+    //                         connect: {
+    //                             id: Number(userId)
+    //                         }
+    //                     }
+    //             }
+    //         });
+
+    //         return res.json({
+    //             status: true,
+    //             message: 'OK',
+    //             error: null,
+    //             data: { file_url: url, first_name, last_name, birth_date }
+    //         });
+    //     } catch (err) {
+    //         next(err);
+    //     }
+    // },
+
     updateProfile: async (req, res, next) => {
         try {
-            // contoh baca dari request multipart
+            // Mendapatkan data dari permintaan multipart
             let { first_name, last_name, birth_date, userId } = req.body;
-
             let strFile = req.file.buffer.toString('base64');
 
+            // Mengunggah gambar ke ImageKit
             let { url } = await imagekit.upload({
                 fileName: Date.now() + path.extname(req.file.originalname),
                 file: strFile
             });
 
-            let userProfile = await prisma.userProfile.create({
-                data: {
+            // Melakukan upsert pada profil pengguna
+            let userProfile = await prisma.userProfile.upsert({
+                where: {
+                    userId: Number(userId) // Gantilah dengan kolom yang sesuai pada profil pengguna yang menunjukkan ID pengguna
+                },
+                create: {
                     first_name,
                     last_name,
                     birth_date,
                     profile_picture: url,
-                    user:
-                        {
-                            connect: {
-                                id: Number(userId)
-                            }
+                    user: {
+                        connect: {
+                            id: Number(userId)
                         }
+                    }
+                },
+                update: {
+                    first_name,
+                    last_name,
+                    birth_date,
+                    profile_picture: url
                 }
             });
 
@@ -87,7 +134,12 @@ module.exports = {
                 status: true,
                 message: 'OK',
                 error: null,
-                data: { file_url: url, first_name, last_name, birth_date }
+                data: {
+                    file_url: url,
+                    first_name,
+                    last_name,
+                    birth_date
+                }
             });
         } catch (err) {
             next(err);
@@ -120,6 +172,24 @@ module.exports = {
             });
         } catch (err) {
             next(err);
+        }
+    },
+
+
+    authenticate: async (req, res, next) => {
+        try {
+            const user = req.user;
+            const profile = await prisma.userProfile.findUnique({
+                where: { userId: user.id }
+            });
+            return res.status(200).json({
+                status: true,
+                message: 'OK',
+                error: null,
+                data: { user: { ...profile, email: user.email } }
+            });
+        } catch (error) {
+            next(error);
         }
     }
 };
