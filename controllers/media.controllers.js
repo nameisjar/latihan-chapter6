@@ -65,7 +65,7 @@ module.exports = {
                 status: true,
                 message: 'OK',
                 error: null,
-                data: { file_url: userProfile } // cek data dari request
+                data: { file_url: url, first_name, last_name, birth_date }
             });
         } catch (err) {
             next(err);
